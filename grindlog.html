@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="GrindLog">
+<meta name="theme-color" content="#0a0a0a">
+<title>GrindLog</title>
+
+<!-- PWA icon inline SVG as data URI -->
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' fill='%230a0a0a'/%3E%3Crect x='12' y='12' width='156' height='156' fill='none' stroke='%23e63416' stroke-width='6'/%3E%3Ctext x='90' y='105' font-family='serif' font-size='72' font-weight='900' fill='%23f5f0e8' text-anchor='middle'%3EGL%3C/text%3E%3C/svg%3E">
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Bebas+Neue&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --ink: #0a0a0a;
+  --paper: #f5f0e8;
+  --accent: #e63416;
+  --accent-dark: #b82a10;
+  --mid: #5a5a5a;
+  --light: #d4cfc6;
+  --white: #ffffff;
+  --border: 2.5px solid #0a0a0a;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html { background: var(--ink); }
+
+body {
+  background: var(--paper);
+  font-family: 'Space Mono', 'Courier New', monospace;
+  color: var(--ink);
+  min-height: 100dvh;
+  max-width: 430px;
+  margin: 0 auto;
+  overflow-x: hidden;
+}
+
+/* ── HEADER ── */
+.header {
+  background: var(--ink);
+  padding: calc(var(--safe-top) + 20px) 20px 16px;
+  border-bottom: 4px solid var(--accent);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.header h1 {
+  font-family: 'Bebas Neue', serif;
+  font-size: 58px;
+  line-height: 1;
+  letter-spacing: 0.03em;
+  color: var(--paper);
+}
+
+.header h1 em { color: var(--accent); font-style: normal; }
+
+/* ── TABS ── */
+.tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: var(--ink);
+  border-bottom: var(--border);
+}
+
+.tab {
+  padding: 14px 0;
+  text-align: center;
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: #666;
+  border-right: 2px solid #333;
+  transition: background 0.12s, color 0.12s;
+}
+
+.tab:last-child { border-right: none; }
+.tab.active { background: var(--paper); color: var(--ink); }
+
+/* ── VIEWS ── */
+.view { display: none; padding: 0 16px calc(var(--safe-bottom) + 32px); }
+.view.active { display: block; }
+
+/* ── SECTION LABEL ── */
+.section-label {
+  font-size: 9px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--mid);
+  margin: 22px 0 10px;
+  font-weight: 700;
+}
+
+/* ── FIELD BLOCKS ── */
+.field-block {
+  border: var(--border);
+  background: var(--white);
+  margin-bottom: 10px;
+  position: relative;
+}
+
+.field-label {
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  font-weight: 700;
+  display: block;
+}
+
+.field-block input[type="text"],
+.field-block input[type="number"] {
+  width: 100%;
+  border: none;
+  outline: none;
+  padding: 13px 12px;
+  font-family: 'Space Mono', monospace;
+  font-size: 16px;
+  color: var(--ink);
+  background: transparent;
+  font-weight: 700;
+  -webkit-appearance: none;
+}
+
+.field-block input::placeholder {
+  color: var(--light);
+  font-weight: 400;
+}
+
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* ── GRIND DIAL ── */
+.grind-inner { padding: 10px 12px 14px; }
+
+.grind-row {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  border: var(--border);
+}
+
+.dial-btn {
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+  background: var(--paper);
+  border: none;
+  border-right: var(--border);
+  font-size: 26px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Space Mono', monospace;
+  color: var(--ink);
+  transition: background 0.1s;
+  -webkit-appearance: none;
+  user-select: none;
+}
+
+.dial-btn:last-child { border-right: none; border-left: var(--border); }
+.dial-btn:active { background: var(--ink); color: var(--paper); }
+
+.dial-num {
+  flex: 1;
+  text-align: center;
+  font-family: 'Bebas Neue', serif;
+  font-size: 60px;
+  line-height: 1;
+  color: var(--ink);
+  background: var(--white);
+  padding: 4px 0;
+}
+
+.grind-pips {
+  display: flex;
+  gap: 3px;
+  margin-top: 8px;
+}
+
+.pip {
+  flex: 1;
+  height: 7px;
+  background: var(--light);
+  border: 1px solid #bbb;
+  transition: background 0.15s;
+}
+
+.pip.on { background: var(--ink); border-color: var(--ink); }
+.pip.cur { background: var(--accent); border-color: var(--accent-dark); }
+
+/* ── RATIO BADGE ── */
+.ratio-strip {
+  background: var(--ink);
+  color: var(--paper);
+  border: var(--border);
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.ratio-left .rl-title { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: #aaa; }
+.ratio-left .rl-sub { font-size: 9px; letter-spacing: 0.1em; color: #666; margin-top: 2px; }
+.ratio-right { font-family: 'Bebas Neue', serif; font-size: 38px; color: var(--paper); }
+.ratio-right .r-unit { font-size: 14px; color: var(--accent); margin-left: 2px; }
+
+/* ── SUBMIT ── */
+.submit-btn {
+  width: 100%;
+  background: var(--accent);
+  color: var(--paper);
+  border: 3px solid var(--ink);
+  padding: 18px;
+  font-family: 'Bebas Neue', serif;
+  font-size: 26px;
+  letter-spacing: 0.18em;
+  cursor: pointer;
+  margin-top: 6px;
+  box-shadow: 5px 5px 0 var(--ink);
+  transition: box-shadow 0.1s, transform 0.1s;
+  -webkit-appearance: none;
+  display: block;
+}
+
+.submit-btn:active {
+  box-shadow: 2px 2px 0 var(--ink);
+  transform: translate(3px, 3px);
+}
+
+/* ── TOAST ── */
+.toast {
+  position: fixed;
+  top: calc(var(--safe-top) + 12px);
+  left: 50%;
+  transform: translateX(-50%) translateY(-100px);
+  background: var(--ink);
+  color: var(--paper);
+  padding: 13px 22px;
+  font-family: 'Bebas Neue', serif;
+  font-size: 17px;
+  letter-spacing: 0.12em;
+  border: 2px solid var(--accent);
+  z-index: 999;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ── ERROR SHAKE ── */
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  20% { transform: translateX(-7px); }
+  40% { transform: translateX(7px); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(5px); }
+}
+.shake { animation: shake 0.35s ease; }
+
+/* ── EMPTY STATE ── */
+.empty-state {
+  text-align: center;
+  padding: 52px 20px;
+  border: 2.5px dashed var(--light);
+  margin-top: 10px;
+}
+
+.empty-icon {
+  font-family: 'Bebas Neue', serif;
+  font-size: 64px;
+  color: var(--light);
+  display: block;
+  line-height: 1;
+}
+
+.empty-text {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--mid);
+  margin-top: 8px;
+  display: block;
+}
+
+/* ── LOG ENTRIES ── */
+.log-entry {
+  border: var(--border);
+  margin-bottom: 12px;
+  background: var(--white);
+  box-shadow: 4px 4px 0 var(--ink);
+  position: relative;
+  overflow: hidden;
+}
+
+.entry-head {
+  background: var(--ink);
+  padding: 9px 44px 9px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.entry-name {
+  font-family: 'Bebas Neue', serif;
+  font-size: 22px;
+  letter-spacing: 0.06em;
+  color: var(--paper);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+}
+
+.entry-date {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: #888;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.del-btn {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  color: #666;
+  padding: 4px 8px;
+  line-height: 1;
+  font-family: 'Space Mono', monospace;
+}
+.del-btn:active { color: var(--accent); }
+
+.entry-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.stat-cell {
+  padding: 10px 6px;
+  text-align: center;
+  border-right: 1.5px solid #e4e0d8;
+}
+.stat-cell:last-child { border-right: none; }
+
+.stat-val {
+  display: block;
+  font-family: 'Bebas Neue', serif;
+  font-size: 24px;
+  color: var(--ink);
+  line-height: 1;
+}
+
+.stat-lbl {
+  display: block;
+  font-size: 8px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mid);
+  margin-top: 3px;
+}
+
+.entry-ratio {
+  background: var(--accent);
+  color: var(--paper);
+  text-align: center;
+  padding: 5px 8px;
+  font-family: 'Bebas Neue', serif;
+  font-size: 14px;
+  letter-spacing: 0.12em;
+}
+
+/* ── STATS BANNER ── */
+.stats-banner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.stat-card {
+  border: var(--border);
+  background: var(--white);
+  padding: 10px 12px;
+}
+
+.sc-label {
+  font-size: 8px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--mid);
+  display: block;
+  margin-bottom: 2px;
+}
+
+.sc-val {
+  font-family: 'Bebas Neue', serif;
+  font-size: 30px;
+  color: var(--ink);
+  line-height: 1;
+}
+
+.sc-val em { font-style: normal; color: var(--accent); font-size: 20px; }
+
+/* ── INSTALL BANNER ── */
+.install-banner {
+  background: var(--ink);
+  color: var(--paper);
+  border: var(--border);
+  padding: 12px 14px;
+  margin: 16px 0 0;
+  font-size: 11px;
+  line-height: 1.6;
+  display: none;
+}
+
+.install-banner strong {
+  display: block;
+  font-family: 'Bebas Neue', serif;
+  font-size: 16px;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+
+.install-banner .steps { color: #ccc; margin-top: 4px; }
+.install-banner .steps span { color: var(--paper); font-weight: 700; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-eyebrow">Diario de extracción</div>
+  <h1>GRIND<em>LOG</em></h1>
+</div>
+
+<div class="tabs">
+  <button class="tab active" id="tab-new" onclick="switchTab('new')">+ NUEVA</button>
+  <button class="tab" id="tab-log" onclick="switchTab('log')">HISTORIAL</button>
+</div>
+
+<!-- ── NUEVA EXTRACCIÓN ── -->
+<div class="view active" id="view-new">
+
+  <div id="install-hint" class="install-banner">
+    <strong>📲 INSTALAR EN IPHONE</strong>
+    <div class="steps">
+      Pulsa <span>Compartir ↑</span> en Safari → <span>"Añadir a pantalla de inicio"</span> → <span>Añadir</span>. ¡Listo!
+    </div>
+  </div>
+
+  <div class="section-label">Identificación</div>
+
+  <div class="field-block">
+    <span class="field-label">Nombre del café</span>
+    <input type="text" id="f-name" placeholder="Ej. Etiopía Yirgacheffe" autocomplete="off">
+  </div>
+
+  <div class="section-label">Parámetros de molienda</div>
+
+  <div class="field-block">
+    <span class="field-label">Número de molienda (1–10)</span>
+    <div class="grind-inner">
+      <div class="grind-row">
+        <button class="dial-btn" id="dial-minus" ontouchstart="startRepeat(-1)" ontouchend="stopRepeat()" onclick="changeGrind(-1)">−</button>
+        <div class="dial-num" id="grind-display">5</div>
+        <button class="dial-btn" id="dial-plus" ontouchstart="startRepeat(1)" ontouchend="stopRepeat()" onclick="changeGrind(1)">+</button>
+      </div>
+      <div class="grind-pips" id="pips"></div>
+    </div>
+  </div>
+
+  <div class="section-label">Extracción</div>
+
+  <div class="two-col">
+    <div class="field-block">
+      <span class="field-label">Dosis (g)</span>
+      <input type="number" id="f-dose" placeholder="18" min="1" max="40" step="0.1" inputmode="decimal" oninput="updateRatio()">
+    </div>
+    <div class="field-block">
+      <span class="field-label">Yield (g)</span>
+      <input type="number" id="f-yield" placeholder="36" min="1" max="200" step="0.1" inputmode="decimal" oninput="updateRatio()">
+    </div>
+  </div>
+
+  <div class="field-block">
+    <span class="field-label">Tiempo de extracción (seg)</span>
+    <input type="number" id="f-time" placeholder="27" min="1" max="120" inputmode="numeric">
+  </div>
+
+  <div class="ratio-strip" id="ratio-strip" style="display:none">
+    <div class="ratio-left">
+      <div class="rl-title">Ratio café</div>
+      <div class="rl-sub">dosis → yield</div>
+    </div>
+    <div class="ratio-right" id="ratio-val">1:2.0<span class="r-unit">×</span></div>
+  </div>
+
+  <button class="submit-btn" id="save-btn" onclick="saveEntry()">GUARDAR EXTRACCIÓN</button>
+</div>
+
+<!-- ── HISTORIAL ── -->
+<div class="view" id="view-log">
+  <div class="section-label">Resumen</div>
+  <div class="stats-banner" id="stats-banner" style="display:none"></div>
+  <div class="section-label">Extracciones</div>
+  <div id="log-list"></div>
+</div>
+
+<div class="toast" id="toast">✓ EXTRACCIÓN GUARDADA</div>
+
+<script>
+// ── STATE ──
+const STORAGE_KEY = 'grindlog_entries_v1';
+let grind = 5;
+let entries = [];
+
+// ── PERSIST ──
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) entries = JSON.parse(raw);
+  } catch(e) { entries = []; }
+}
+
+function save() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(entries)); } catch(e) {}
+}
+
+// ── GRIND DIAL ──
+function buildPips() {
+  const el = document.getElementById('pips');
+  el.innerHTML = '';
+  for (let i = 1; i <= 10; i++) {
+    const d = document.createElement('div');
+    d.className = 'pip' + (i < grind ? ' on' : '') + (i === grind ? ' cur' : '');
+    el.appendChild(d);
+  }
+}
+
+function changeGrind(d) {
+  grind = Math.max(1, Math.min(10, grind + d));
+  document.getElementById('grind-display').textContent = grind;
+  buildPips();
+}
+
+let repeatTimer = null;
+function startRepeat(d) {
+  stopRepeat();
+  repeatTimer = setInterval(() => changeGrind(d), 150);
+}
+function stopRepeat() {
+  if (repeatTimer) { clearInterval(repeatTimer); repeatTimer = null; }
+}
+
+// ── RATIO ──
+function updateRatio() {
+  const dose = parseFloat(document.getElementById('f-dose').value);
+  const yld  = parseFloat(document.getElementById('f-yield').value);
+  const strip = document.getElementById('ratio-strip');
+  if (dose > 0 && yld > 0) {
+    strip.style.display = 'flex';
+    document.getElementById('ratio-val').innerHTML =
+      '1:' + (yld / dose).toFixed(1) + '<span class="r-unit">×</span>';
+  } else {
+    strip.style.display = 'none';
+  }
+}
+
+// ── SAVE ──
+function saveEntry() {
+  const name  = document.getElementById('f-name').value.trim();
+  const dose  = parseFloat(document.getElementById('f-dose').value);
+  const yld   = parseFloat(document.getElementById('f-yield').value);
+  const time  = parseInt(document.getElementById('f-time').value);
+
+  if (!name || !dose || !yld || !time) {
+    const btn = document.getElementById('save-btn');
+    btn.classList.remove('shake');
+    void btn.offsetWidth;
+    btn.classList.add('shake');
+    setTimeout(() => btn.classList.remove('shake'), 400);
+    return;
+  }
+
+  entries.unshift({
+    id: Date.now(),
+    name, dose, grind, yield: yld, time,
+    date: new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: '2-digit' })
+  });
+
+  save();
+  clearForm();
+  showToast('✓ EXTRACCIÓN GUARDADA');
+}
+
+function clearForm() {
+  ['f-name','f-dose','f-yield','f-time'].forEach(id => document.getElementById(id).value = '');
+  grind = 5;
+  document.getElementById('grind-display').textContent = grind;
+  buildPips();
+  document.getElementById('ratio-strip').style.display = 'none';
+}
+
+// ── TOAST ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+// ── DELETE ──
+function deleteEntry(id) {
+  if (!confirm('¿Eliminar esta extracción?')) return;
+  entries = entries.filter(e => e.id !== id);
+  save();
+  renderLog();
+}
+
+// ── RENDER LOG ──
+function renderLog() {
+  const list = document.getElementById('log-list');
+  const banner = document.getElementById('stats-banner');
+
+  if (entries.length === 0) {
+    banner.style.display = 'none';
+    list.innerHTML = `
+      <div class="empty-state">
+        <span class="empty-icon">∅</span>
+        <span class="empty-text">Sin extracciones todavía</span>
+      </div>`;
+    return;
+  }
+
+  // stats
+  const avgGrind = (entries.reduce((a,e) => a + e.grind, 0) / entries.length).toFixed(1);
+  const avgRatio = (entries.reduce((a,e) => a + e.yield/e.dose, 0) / entries.length).toFixed(1);
+  banner.style.display = 'grid';
+  banner.innerHTML = `
+    <div class="stat-card">
+      <span class="sc-label">Total extracciones</span>
+      <div class="sc-val">${entries.length}<em> shots</em></div>
+    </div>
+    <div class="stat-card">
+      <span class="sc-label">Ratio promedio</span>
+      <div class="sc-val">1:<em>${avgRatio}</em></div>
+    </div>`;
+
+  list.innerHTML = entries.map(e => {
+    const ratio = (e.yield / e.dose).toFixed(1);
+    const mins  = e.time >= 60 ? Math.floor(e.time/60) + 'm ' + (e.time%60) + 's' : e.time + 's';
+    return `
+    <div class="log-entry">
+      <div class="entry-head">
+        <span class="entry-name">${e.name}</span>
+        <span class="entry-date">${e.date}</span>
+      </div>
+      <button class="del-btn" onclick="deleteEntry(${e.id})">×</button>
+      <div class="entry-stats">
+        <div class="stat-cell">
+          <span class="stat-val">${e.dose}g</span>
+          <span class="stat-lbl">dosis</span>
+        </div>
+        <div class="stat-cell">
+          <span class="stat-val">${e.grind}</span>
+          <span class="stat-lbl">molienda</span>
+        </div>
+        <div class="stat-cell">
+          <span class="stat-val">${mins}</span>
+          <span class="stat-lbl">tiempo</span>
+        </div>
+        <div class="stat-cell">
+          <span class="stat-val">${e.yield}g</span>
+          <span class="stat-lbl">yield</span>
+        </div>
+      </div>
+      <div class="entry-ratio">RATIO 1:${ratio} · ${e.yield}g DE ${e.dose}g</div>
+    </div>`;
+  }).join('');
+}
+
+// ── TABS ──
+function switchTab(tab) {
+  ['new','log'].forEach(t => {
+    document.getElementById('tab-' + t).classList.toggle('active', t === tab);
+    document.getElementById('view-' + t).classList.toggle('active', t === tab);
+  });
+  if (tab === 'log') renderLog();
+}
+
+// ── INSTALL HINT (show only if not standalone) ──
+if (!window.navigator.standalone) {
+  document.getElementById('install-hint').style.display = 'block';
+}
+
+// ── INIT ──
+load();
+buildPips();
+renderLog();
+</script>
+</body>
+</html>
